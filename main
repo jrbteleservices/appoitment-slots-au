@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Field & Online Slot Pipeline | eMarket Experts & Zeal Digital</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 md:p-6 font-sans">
+
+  <div class="max-w-7xl mx-auto space-y-6">
+    <!-- Header Controls -->
+    <header class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 backdrop-blur-md flex flex-col xl:flex-row xl:items-center justify-between gap-4 shadow-2xl">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <h1 class="text-xl md:text-2xl font-black tracking-tight text-white flex items-center gap-2">
+            Field & Online Slot Pipeline
+          </h1>
+        </div>
+        <p class="text-xs text-slate-400 mt-1">Multi-Agency Appointment Calendar • Melbourne & Sydney SDR Floor</p>
+      </div>
+
+      <!-- Filters -->
+      <div class="flex flex-wrap items-center gap-3">
+        <!-- Agency Filter -->
+        <div class="bg-slate-950 border border-slate-800 p-1 rounded-xl flex text-xs font-bold">
+          <button id="agencyAll" onclick="switchAgency('ALL')" class="px-3 py-2 rounded-lg bg-emerald-600 text-white transition shadow">All Agencies</button>
+          <button id="agencyEmarket" onclick="switchAgency('eMarket Experts')" class="px-3 py-2 rounded-lg text-slate-400 hover:text-white transition">eMarket Experts</button>
+          <button id="agencyZeal" onclick="switchAgency('Zeal Digital')" class="px-3 py-2 rounded-lg text-slate-400 hover:text-white transition">Zeal Digital</button>
+        </div>
+
+        <!-- City Filter (With ALL Tab in the beginning) -->
+        <div class="bg-slate-950 border border-slate-800 p-1 rounded-xl flex text-xs font-bold">
+          <button id="cityAll" onclick="switchCity('ALL')" class="px-3.5 py-2 rounded-lg bg-emerald-600 text-white transition shadow">All Cities</button>
+          <button id="cityMelb" onclick="switchCity('Melbourne')" class="px-3.5 py-2 rounded-lg text-slate-400 hover:text-white transition">Melbourne</button>
+          <button id="citySyd" onclick="switchCity('Sydney')" class="px-3.5 py-2 rounded-lg text-slate-400 hover:text-white transition">Sydney</button>
+        </div>
+
+        <!-- Week Filter -->
+        <div class="bg-slate-950 border border-slate-800 p-1 rounded-xl flex text-xs font-bold">
+          <button id="viewCurr" onclick="switchWeekView('current')" class="px-3 py-2 rounded-lg bg-slate-800 text-white transition">This Week</button>
+          <button id="viewNext" onclick="switchWeekView('next')" class="px-3 py-2 rounded-lg text-slate-400 hover:text-white transition">Next Week</button>
+          <button id="viewBoth" onclick="switchWeekView('both')" class="px-3 py-2 rounded-lg text-slate-400 hover:text-white transition">Both</button>
+        </div>
+
+        <!-- Admin Control -->
+        <button onclick="handleAdminTrigger()" id="adminBtn" class="bg-slate-800 hover:bg-slate-700 text-xs font-bold px-3.5 py-2.5 rounded-xl border border-slate-700 text-slate-200 flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-lock text-emerald-400" id="lockIcon"></i>
+          <span id="adminBtnText">Admin Settings</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Legend -->
+    <div class="flex flex-wrap items-center justify-between text-xs bg-slate-900/50 border border-slate-800/80 px-4 py-2.5 rounded-xl text-slate-400 gap-3">
+      <div class="flex items-center gap-3 flex-wrap">
+        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-sky-500/80 inline-block"></span> eMarket Melbourne</span>
+        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-cyan-500/80 inline-block"></span> eMarket Sydney</span>
+        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-violet-500/80 inline-block"></span> Zeal Melbourne</span>
+        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-fuchsia-500/80 inline-block"></span> Zeal Sydney</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-emerald-400 font-semibold"><i class="fa-solid fa-circle-check mr-1"></i>Available</span>
+        <span class="text-rose-400 font-semibold"><i class="fa-solid fa-circle-xmark mr-1"></i>Booked</span>
+        <span class="text-amber-500/80 font-semibold"><i class="fa-solid fa-clock-rotate-left mr-1"></i>Expired</span>
+      </div>
+    </div>
+
+    <!-- Calendar Weeks Container -->
+    <main id="weeksContainer" class="space-y-8">
+      <!-- Calendar columns injected dynamically -->
+    </main>
+  </div>
+
+  <!-- BOOKING MODAL (SDRs) -->
+  <div id="bookingModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <div>
+          <h3 class="font-bold text-lg text-emerald-400" id="modalSlotTitle">Lock Appointment Slot</h3>
+          <span class="text-xs text-slate-400" id="modalSlotSubtitle"></span>
+        </div>
+        <button onclick="closeBookingModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-400 font-semibold mb-1">Company Website URL *</label>
+          <input id="inputWebsite" type="url" placeholder="https://example.com.au" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white focus:border-emerald-500 outline-none text-xs">
+        </div>
+        <div>
+          <label class="block text-slate-400 font-semibold mb-1">Business Name *</label>
+          <input id="inputCompany" type="text" placeholder="e.g. Cranbourne Prestige Trades" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white focus:border-emerald-500 outline-none text-xs">
+        </div>
+        <div>
+          <label class="block text-slate-400 font-semibold mb-1">Agent Name</label>
+          <input id="inputAgent" type="text" placeholder="Robert" value="Robert" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white focus:border-emerald-500 outline-none text-xs">
+        </div>
+      </div>
+
+      <div class="pt-2">
+        <button onclick="confirmBooking()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition flex items-center justify-center gap-2 text-xs shadow-lg">
+          <i class="fa-solid fa-check-circle"></i> Lock Slot & Copy Quick Chat Alert
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN PASSCODE MODAL (Clean, PIN completely hidden) -->
+  <div id="pinModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-xs w-full p-5 space-y-4 shadow-2xl text-center">
+      <div class="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto text-lg">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+      <div>
+        <h4 class="font-bold text-white text-base">Manager Access</h4>
+        <p class="text-xs text-slate-400 mt-1">Enter Master PIN to manage client slots</p>
+      </div>
+      <input id="adminPinInput" type="password" maxlength="8" placeholder="••••" class="w-full text-center tracking-widest text-lg font-mono bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white outline-none focus:border-emerald-500">
+      <div class="flex gap-2">
+        <button onclick="closePinModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-xs py-2 rounded-lg text-slate-300">Cancel</button>
+        <button onclick="verifyPin()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-xs py-2 rounded-lg text-white font-bold">Unlock</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN SETTINGS & SLOT MANAGEMENT MODAL -->
+  <div id="adminSettingsModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-5xl w-full p-6 space-y-5 shadow-2xl max-h-[92vh] flex flex-col">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <div>
+          <h3 class="font-bold text-lg text-white flex items-center gap-2">
+            <i class="fa-solid fa-gear text-emerald-400"></i> Client Availability Manager
+          </h3>
+          <p class="text-xs text-slate-400">Select slots sent by the client, or use the form below to add custom/multiple slots.</p>
+        </div>
+        <button onclick="closeAdminSettingsModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- Section 1: Add Custom / Parallel Slots Form -->
+      <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+        <span class="text-xs font-bold text-emerald-400 flex items-center gap-1.5 uppercase tracking-wide">
+          <i class="fa-solid fa-plus-circle"></i> Add Custom Time Slot / Extra Parallel Slots
+        </span>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-2.5 text-xs">
+          <div>
+            <label class="block text-slate-400 mb-1">Agency</label>
+            <select id="slotAgency" onchange="onAgencyChange(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none">
+              <option value="eMarket Experts">eMarket Experts</option>
+              <option value="Zeal Digital">Zeal Digital</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-slate-400 mb-1">City</label>
+            <select id="slotCity" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none">
+              <option value="Melbourne">Melbourne</option>
+              <option value="Sydney">Sydney</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-slate-400 mb-1">Target Day</label>
+            <select id="slotDay" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-slate-400 mb-1">Time</label>
+            <select id="slotTime" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none">
+              <option value="09:00 AM">09:00 AM</option>
+              <option value="10:00 AM">10:00 AM</option>
+              <option value="11:00 AM">11:00 AM</option>
+              <option value="12:00 PM">12:00 PM</option>
+              <option value="01:00 PM">01:00 PM</option>
+              <option value="02:00 PM">02:00 PM</option>
+              <option value="03:00 PM">03:00 PM</option>
+              <option value="04:00 PM">04:00 PM</option>
+              <option value="05:00 PM">05:00 PM</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-slate-400 mb-1">Format</label>
+            <select id="slotType" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none">
+              <option value="Physical Meeting (Drop-by)">Physical Meeting (Drop-by)</option>
+              <option value="Zoom Meeting">Zoom Meeting</option>
+              <option value="Google Meet">Google Meet</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-slate-400 mb-1">Quantity</label>
+            <select id="slotQty" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-emerald-400 font-bold outline-none">
+              <option value="1">1 Slot</option>
+              <option value="2">2 Slots</option>
+              <option value="3">3 Slots</option>
+              <option value="4">4 Slots</option>
+            </select>
+          </div>
+
+          <div class="flex items-end">
+            <button onclick="addCustomSlotAction()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg transition text-xs flex items-center justify-center gap-1 shadow">
+              <i class="fa-solid fa-plus"></i> Add
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Quick-Selection Checklist (Day-by-Day Grid) -->
+      <div class="flex-1 overflow-y-auto space-y-4 pr-1">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <span class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-list-check text-emerald-400"></i> Select & Toggle Slots (Tick to make Available)
+          </span>
+          <!-- Admin Filter to easily focus on an Agency/City -->
+          <div class="flex items-center gap-2 text-xs">
+            <span class="text-slate-500">Filter View:</span>
+            <select id="adminFilterAgency" onchange="renderAdminSelectionGrid()" class="bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white outline-none">
+              <option value="ALL">All Agencies</option>
+              <option value="eMarket Experts">eMarket Experts</option>
+              <option value="Zeal Digital">Zeal Digital</option>
+            </select>
+            <select id="adminFilterCity" onchange="renderAdminSelectionGrid()" class="bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white outline-none">
+              <option value="ALL">All Cities</option>
+              <option value="Melbourne">Melbourne</option>
+              <option value="Sydney">Sydney</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Injected Selection Grid -->
+        <div id="adminSelectionGrid" class="space-y-3 text-xs"></div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-800 flex justify-between items-center">
+        <button onclick="lockAdminSession()" class="text-rose-400 hover:underline text-xs flex items-center gap-1">
+          <i class="fa-solid fa-lock"></i> Lock Admin Session
+        </button>
+        <button onclick="closeAdminSettingsModal()" class="bg-slate-800 hover:bg-slate-700 text-white px-6 py-2 rounded-xl text-xs font-bold">
+          Save & Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-6 right-6 bg-emerald-500 text-slate-950 px-5 py-3.5 rounded-xl shadow-2xl font-bold hidden items-center gap-3 z-50 text-xs md:text-sm">
+    <i class="fa-solid fa-circle-check text-lg"></i> <span id="toastMsg">Alert message</span>
+  </div>
+
+  <script>
+    const MASTER_PIN = "8888";
+    let isAdminUnlocked = false;
+    let selectedAgency = "ALL";
+    let currentCity = "ALL";
+    let currentWeekView = "current";
+    let activeBooking = null;
+
+    const STANDARD_TIMES = ["10:00 AM", "12:00 PM", "02:00 PM", "04:00 PM"];
+
+    // Date generation for Current & Next Week (Monday to Friday)
+    function generateTwoWeeks() {
+      const now = new Date(2026, 8, 30, 16, 27); // Wednesday, Sept 30, 2026
+      const currentDayOfWeek = now.getDay();
+      const distanceToMon = (currentDayOfWeek + 6) % 7;
+      
+      const monCurrent = new Date(now);
+      monCurrent.setDate(now.getDate() - distanceToMon);
+
+      const weeks = { current: [], next: [] };
+      const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+      const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+      for (let i = 0; i < 5; i++) {
+        const d = new Date(monCurrent);
+        d.setDate(monCurrent.getDate() + i);
+        weeks.current.push({
+          id: `curr_${d.getFullYear()}_${d.getMonth()+1}_${d.getDate()}`,
+          name: dayNames[i],
+          year: d.getFullYear(),
+          month: d.getMonth(),
+          date: d.getDate(),
+          dateFormatted: `${d.getDate()} ${months[d.getMonth()]}`,
+          weekType: "Current Week"
+        });
+      }
+
+      for (let i = 7; i < 12; i++) {
+        const d = new Date(monCurrent);
+        d.setDate(monCurrent.getDate() + i);
+        weeks.next.push({
+          id: `next_${d.getFullYear()}_${d.getMonth()+1}_${d.getDate()}`,
+          name: dayNames[i - 7],
+          year: d.getFullYear(),
+          month: d.getMonth(),
+          date: d.getDate(),
+          dateFormatted: `${d.getDate()} ${months[d.getMonth()]}`,
+          weekType: "Next Week"
+        });
+      }
+
+      return weeks;
+    }
+
+    const calendarWeeks = generateTwoWeeks();
+    const allDaysList = [...calendarWeeks.current, ...calendarWeeks.next];
+
+    // Master Slots Database stored in localStorage
+    let slotsDB = JSON.parse(localStorage.getItem("agency_pipeline_v4")) || [];
+
+    // Initialize Standard Pool if empty
+    function initStandardSlotsPool() {
+      if (slotsDB.length === 0) {
+        allDaysList.forEach(day => {
+          // 1. eMarket Melbourne (Standard 10, 12, 2, 4) - Starts unchecked
+          STANDARD_TIMES.forEach(time => {
+            slotsDB.push({
+              id: `${day.id}_em_melb_${time}_1`,
+              agency: "eMarket Experts",
+              city: "Melbourne",
+              dayId: day.id,
+              dayName: day.name,
+              dateFormatted: day.dateFormatted,
+              weekType: day.weekType,
+              year: day.year,
+              month: day.month,
+              date: day.date,
+              time: time,
+              slotIndex: 1,
+              meetingType: "Physical Meeting (Drop-by)",
+              enabled: false, // Default unchecked
+              booked: false,
+              details: null,
+              isCustom: false
+            });
+          });
+
+          // 2. Zeal Melbourne (Standard 10, 12, 2, 4) - Starts unchecked
+          STANDARD_TIMES.forEach(time => {
+            slotsDB.push({
+              id: `${day.id}_zd_melb_${time}_1`,
+              agency: "Zeal Digital",
+              city: "Melbourne",
+              dayId: day.id,
+              dayName: day.name,
+              dateFormatted: day.dateFormatted,
+              weekType: day.weekType,
+              year: day.year,
+              month: day.month,
+              date: day.date,
+              time: time,
+              slotIndex: 1,
+              meetingType: "Physical Meeting (Drop-by)",
+              enabled: false, // Default unchecked
+              booked: false,
+              details: null,
+              isCustom: false
+            });
+          });
+
+          // 3. Zeal Sydney (Standard 10, 12, 2, 4 with 2 standard expert slots) - Starts unchecked
+          STANDARD_TIMES.forEach(time => {
+            [1, 2].forEach(expIdx => {
+              slotsDB.push({
+                id: `${day.id}_zd_syd_${time}_${expIdx}`,
+                agency: "Zeal Digital",
+                city: "Sydney",
+                dayId: day.id,
+                dayName: day.name,
+                dateFormatted: day.dateFormatted,
+                weekType: day.weekType,
+                year: day.year,
+                month: day.month,
+                date: day.date,
+                time: time,
+                slotIndex: expIdx,
+                meetingType: "Physical Meeting (Drop-by)",
+                enabled: false, // Default unchecked
+                booked: false,
+                details: null,
+                isCustom: false
+              });
+            });
+          });
+        });
+        save();
+      }
+    }
+
+    function save() {
+      localStorage.setItem("agency_pipeline_v4", JSON.stringify(slotsDB));
+    }
+
+    // Top Navigation Filters
+    function switchAgency(agency) {
+      selectedAgency = agency;
+      ['agencyAll', 'agencyEmarket', 'agencyZeal'].forEach(id => {
+        document.getElementById(id).className = "px-3 py-2 rounded-lg text-slate-400 hover:text-white transition";
+      });
+      if (agency === 'ALL') document.getElementById('agencyAll').className = "px-3 py-2 rounded-lg bg-emerald-600 text-white transition shadow";
+      if (agency === 'eMarket Experts') document.getElementById('agencyEmarket').className = "px-3 py-2 rounded-lg bg-sky-600 text-white transition shadow";
+      if (agency === 'Zeal Digital') document.getElementById('agencyZeal').className = "px-3 py-2 rounded-lg bg-violet-600 text-white transition shadow";
+      renderSchedule();
+    }
+
+    function switchCity(city) {
+      currentCity = city;
+      ['cityAll', 'cityMelb', 'citySyd'].forEach(id => {
+        document.getElementById(id).className = "px-3.5 py-2 rounded-lg text-slate-400 hover:text-white transition";
+      });
+      if (city === 'ALL') document.getElementById('cityAll').className = "px-3.5 py-2 rounded-lg bg-emerald-600 text-white transition shadow";
+      if (city === 'Melbourne') document.getElementById('cityMelb').className = "px-3.5 py-2 rounded-lg bg-emerald-600 text-white transition shadow";
+      if (city === 'Sydney') document.getElementById('citySyd').className = "px-3.5 py-2 rounded-lg bg-emerald-600 text-white transition shadow";
+      renderSchedule();
+    }
+
+    function switchWeekView(view) {
+      currentWeekView = view;
+      ['viewCurr', 'viewNext', 'viewBoth'].forEach(id => {
+        document.getElementById(id).className = "px-3 py-2 rounded-lg text-slate-400 hover:text-white transition";
+      });
+      if (view === 'current') document.getElementById('viewCurr').className = "px-3 py-2 rounded-lg bg-slate-800 text-white transition font-bold";
+      if (view === 'next') document.getElementById('viewNext').className = "px-3 py-2 rounded-lg bg-slate-800 text-white transition font-bold";
+      if (view === 'both') document.getElementById('viewBoth').className = "px-3 py-2 rounded-lg bg-slate-800 text-white transition font-bold";
+      renderSchedule();
+    }
+
+    function parseTimeMinutes(timeStr) {
+      const parts = timeStr.trim().split(" ");
+      const [hours, minutes] = parts[0].split(":").map(Number);
+      const modifier = parts[1] || "AM";
+      let total = hours;
+      if (modifier === "PM" && hours < 12) total += 12;
+      if (modifier === "AM" && hours === 12) total = 0;
+      return total * 60 + (minutes || 0);
+    }
+
+    function isSlotExpired(day, timeStr) {
+      const parts = timeStr.trim().split(" ");
+      let [hours, minutes] = parts[0].split(":").map(Number);
+      const modifier = parts[1] || "AM";
+      if (modifier === "PM" && hours < 12) hours += 12;
+      if (modifier === "AM" && hours === 12) hours = 0;
+
+      const slotDateTime = new Date(day.year, day.month, day.date, hours, minutes || 0, 0);
+      const now = new Date(2026, 8, 30, 16, 27);
+      return slotDateTime < now;
+    }
+
+    function onAgencyChange(agency) {
+      const citySelect = document.getElementById("slotCity");
+      if (agency === "eMarket Experts") {
+        citySelect.value = "Melbourne";
+      } else {
+        citySelect.value = "Sydney";
+      }
+    }
+
+    function getAgencyCityMeta(agency, city) {
+      if (agency === "eMarket Experts") {
+        if (city === "Sydney") {
+          return { label: "eMarket Sydney", classes: "bg-cyan-950 text-cyan-300 border border-cyan-800/80" };
+        }
+        return { label: "eMarket Melbourne", classes: "bg-sky-950 text-sky-300 border border-sky-800/80" };
+      } else {
+        if (city === "Sydney") {
+          return { label: "Zeal Sydney", classes: "bg-fuchsia-950 text-fuchsia-300 border border-fuchsia-800/80" };
+        }
+        return { label: "Zeal Melbourne", classes: "bg-violet-950 text-violet-300 border border-violet-800/80" };
+      }
+    }
+
+    // =========================================================================
+    // MAIN CALENDAR BOARD RENDERER
+    // =========================================================================
+    function renderSchedule() {
+      const container = document.getElementById("weeksContainer");
+      container.innerHTML = "";
+
+      const locationLabel = currentCity === "ALL" ? "All Locations (Melbourne & Sydney)" : `${currentCity}`;
+      const agencyLabel = selectedAgency === "ALL" ? "All Agencies" : selectedAgency;
+
+      const renderWeekBlock = (title, subtitle, days) => {
+        const section = document.createElement("section");
+        section.className = "space-y-3";
+        section.innerHTML = `
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <div>
+              <h2 class="text-base font-black tracking-wide text-white uppercase flex items-center gap-2">
+                <i class="fa-regular fa-calendar-days text-emerald-400"></i> ${title}
+              </h2>
+              <p class="text-xs text-slate-400">${subtitle} • ${locationLabel} • ${agencyLabel}</p>
+            </div>
+            <span class="text-[11px] bg-slate-900 border border-slate-800 px-3 py-1 rounded-full text-slate-400">Monday - Friday</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5" id="grid_${title.replace(/\s+/g, '')}"></div>
+        `;
+        container.appendChild(section);
+
+        const grid = section.querySelector(`#grid_${title.replace(/\s+/g, '')}`);
+        days.forEach(day => {
+          const col = document.createElement("div");
+          col.className = "bg-slate-900/90 border border-slate-800 rounded-xl p-3 flex flex-col space-y-2.5 shadow-md min-h-[160px]";
+
+          // Filter by day and City
+          let matchingSlots = slotsDB.filter(s => s.dayId === day.id);
+          if (currentCity !== "ALL") matchingSlots = matchingSlots.filter(s => s.city === currentCity);
+          if (selectedAgency !== "ALL") matchingSlots = matchingSlots.filter(s => s.agency === selectedAgency);
+
+          // Only display slots that are enabled (checked) or booked
+          matchingSlots = matchingSlots.filter(s => s.enabled || s.booked);
+
+          matchingSlots.sort((a, b) => {
+            const timeDiff = parseTimeMinutes(a.time) - parseTimeMinutes(b.time);
+            if (timeDiff !== 0) return timeDiff;
+            const cityDiff = a.city.localeCompare(b.city);
+            if (cityDiff !== 0) return cityDiff;
+            return (a.slotIndex || 1) - (b.slotIndex || 1);
+          });
+
+          let slotsMarkup = "";
+          matchingSlots.forEach(slot => {
+            const meta = getAgencyCityMeta(slot.agency, slot.city);
+            const isDropBy = slot.meetingType.includes("Drop-by");
+            const formatBadge = isDropBy 
+              ? '<span class="text-[9px] bg-slate-800 text-slate-300 px-1 py-0.5 rounded">Drop-By</span>'
+              : '<span class="text-[9px] bg-blue-950 text-blue-300 border border-blue-800 px-1 py-0.5 rounded">Online</span>';
+
+            const slotNumberTag = `<span class="text-[9px] bg-slate-800 text-slate-400 px-1 py-0.5 rounded font-mono">Exp #${slot.slotIndex || 1}</span>`;
+            const expired = isSlotExpired(day, slot.time);
+
+            if (expired) {
+              slotsMarkup += `
+                <div class="w-full py-2 px-2.5 rounded-lg border border-slate-800/80 bg-slate-950/70 text-slate-500 text-xs flex justify-between items-center cursor-not-allowed opacity-60">
+                  <div class="flex items-center gap-1.5 truncate">
+                    <span class="font-medium line-through text-slate-500">${slot.time}</span>
+                    <span class="text-[9px] px-1 py-0.2 rounded font-semibold ${meta.classes} grayscale opacity-70">${meta.label}</span>
+                    ${slotNumberTag}
+                    ${formatBadge}
+                  </div>
+                  <span class="text-[9px] uppercase font-bold tracking-widest text-amber-500/80 bg-amber-950/30 border border-amber-900/40 px-1.5 py-0.5 rounded">Expired</span>
+                </div>`;
+            } else if (slot.booked) {
+              slotsMarkup += `
+                <div class="w-full py-2 px-2.5 rounded-lg border border-rose-900/60 bg-rose-950/20 text-rose-300 text-xs flex flex-col gap-1 shadow-sm">
+                  <div class="flex justify-between items-center font-bold">
+                    <div class="flex items-center gap-1.5 truncate">
+                      <span class="text-white">${slot.time}</span>
+                      <span class="text-[9px] px-1 py-0.2 rounded font-semibold ${meta.classes}">${meta.label}</span>
+                      ${slotNumberTag}
+                      ${formatBadge}
+                    </div>
+                    <span class="text-[9px] bg-rose-900/50 text-rose-300 px-1.5 py-0.5 rounded font-black tracking-wider">BOOKED</span>
+                  </div>
+                  <div class="truncate text-[11px] text-slate-300 font-medium">${slot.details?.company || "Client"}</div>
+                  ${isAdminUnlocked ? `<button onclick="releaseSlot('${slot.id}')" class="text-[10px] text-rose-400 hover:text-rose-300 hover:underline self-start mt-0.5"><i class="fa-solid fa-trash-can mr-1"></i>Release Slot</button>` : ''}
+                </div>`;
+            } else {
+              slotsMarkup += `
+                <button onclick="openBookingModal('${slot.id}')" class="w-full py-2 px-2.5 rounded-lg border border-emerald-900/50 bg-emerald-950/20 hover:bg-emerald-900/40 text-emerald-300 text-xs flex justify-between items-center transition group shadow-sm">
+                  <div class="flex items-center gap-1.5 truncate">
+                    <span class="font-bold text-white group-hover:text-emerald-300">${slot.time}</span>
+                    <span class="text-[9px] px-1 py-0.2 rounded font-semibold ${meta.classes}">${meta.label}</span>
+                    ${slotNumberTag}
+                    ${formatBadge}
+                  </div>
+                  <span class="text-[9px] font-black uppercase text-emerald-400 bg-emerald-900/30 px-1.5 py-0.5 rounded">Available</span>
+                </button>`;
+            }
+          });
+
+          col.innerHTML = `
+            <div class="border-b border-slate-800 pb-2 flex justify-between items-center">
+              <div>
+                <h4 class="font-bold text-sm text-slate-100">${day.name}</h4>
+                <span class="text-[11px] text-slate-400">${day.dateFormatted}</span>
+              </div>
+            </div>
+            <div class="flex flex-col space-y-1.5 flex-1 justify-start">
+              ${slotsMarkup || '<div class="h-full flex items-center justify-center py-6 text-slate-600 text-xs italic">No active slots</div>'}
+            </div>
+          `;
+          grid.appendChild(col);
+        });
+      };
+
+      if (currentWeekView === "current" || currentWeekView === "both") {
+        renderWeekBlock("Current Week", "Immediate Runs", calendarWeeks.current);
+      }
+      if (currentWeekView === "next" || currentWeekView === "both") {
+        renderWeekBlock("Next Week", "Pipeline Runs", calendarWeeks.next);
+      }
+    }
+
+    // =========================================================================
+    // SDR BOOKING ACTIONS
+    // =========================================================================
+    function openBookingModal(slotId) {
+      const slot = slotsDB.find(s => s.id === slotId);
+      if (!slot) return;
+
+      activeBooking = slot;
+      const meta = getAgencyCityMeta(slot.agency, slot.city);
+
+      document.getElementById("modalSlotTitle").innerText = `${slot.dayName} (${slot.dateFormatted}) @ ${slot.time} (Exp #${slot.slotIndex || 1})`;
+      document.getElementById("modalSlotSubtitle").innerText = `${meta.label} • ${slot.meetingType}`;
+      document.getElementById("inputWebsite").value = "";
+      document.getElementById("inputCompany").value = "";
+      document.getElementById("bookingModal").classList.remove("hidden");
+      document.getElementById("bookingModal").classList.add("flex");
+    }
+
+    function closeBookingModal() {
+      document.getElementById("bookingModal").classList.add("hidden");
+      document.getElementById("bookingModal").classList.remove("flex");
+    }
+
+    function confirmBooking() {
+      const url = document.getElementById("inputWebsite").value.trim();
+      const company = document.getElementById("inputCompany").value.trim();
+      const agent = document.getElementById("inputAgent").value.trim() || "Robert";
+
+      if (!url || !company) {
+        alert("Please enter both Company Name and Website URL.");
+        return;
+      }
+
+      activeBooking.booked = true;
+      activeBooking.details = { url, company, agent };
+
+      save();
+      renderSchedule();
+      closeBookingModal();
+
+      const quickChat = `Appointment Booked With:
+${url}
+For ${activeBooking.dayName} at ${activeBooking.time.toLowerCase().replace(" ", "")}
+${activeBooking.city} (${activeBooking.agency} - ${activeBooking.meetingType}). 1 Slot removed from Calendar.`;
+
+      navigator.clipboard.writeText(quickChat);
+      showToast(`Slot booked & Quick Chat copied!`);
+    }
+
+    function releaseSlot(slotId) {
+      const slot = slotsDB.find(s => s.id === slotId);
+      if (slot && confirm(`Release this ${slot.time} (${slot.agency} - ${slot.city}, Slot #${slot.slotIndex || 1}) back to available?`)) {
+        slot.booked = false;
+        slot.details = null;
+        save();
+        renderSchedule();
+        if (isAdminUnlocked) renderAdminSelectionGrid();
+        showToast("Slot released to Available.");
+      }
+    }
+
+    // =========================================================================
+    // ADMIN SECURITY & MANAGER CONTROLS
+    // =========================================================================
+    function handleAdminTrigger() {
+      if (isAdminUnlocked) {
+        openAdminSettingsModal();
+      } else {
+        document.getElementById("adminPinInput").value = "";
+        document.getElementById("pinModal").classList.remove("hidden");
+        document.getElementById("pinModal").classList.add("flex");
+        document.getElementById("adminPinInput").focus();
+      }
+    }
+
+    function closePinModal() {
+      document.getElementById("pinModal").classList.add("hidden");
+      document.getElementById("pinModal").classList.remove("flex");
+    }
+
+    function verifyPin() {
+      const pin = document.getElementById("adminPinInput").value.trim();
+      if (pin === MASTER_PIN) {
+        isAdminUnlocked = true;
+        closePinModal();
+        updateAdminButtonState();
+        openAdminSettingsModal();
+        renderSchedule();
+        showToast("Manager session unlocked!");
+      } else {
+        alert("Incorrect PIN. Please try again.");
+      }
+    }
+
+    function updateAdminButtonState() {
+      const btn = document.getElementById("adminBtn");
+      const icon = document.getElementById("lockIcon");
+      const txt = document.getElementById("adminBtnText");
+      if (isAdminUnlocked) {
+        btn.className = "bg-emerald-950 border border-emerald-600 text-emerald-300 text-xs font-bold px-3.5 py-2.5 rounded-xl flex items-center gap-1.5 transition";
+        icon.className = "fa-solid fa-lock-open text-emerald-400";
+        txt.innerText = "Manager Controls";
+      } else {
+        btn.className = "bg-slate-800 hover:bg-slate-700 text-xs font-bold px-3.5 py-2.5 rounded-xl border border-slate-700 text-slate-200 flex items-center gap-1.5 transition";
+        icon.className = "fa-solid fa-lock text-emerald-400";
+        txt.innerText = "Admin Settings";
+      }
+    }
+
+    function lockAdminSession() {
+      isAdminUnlocked = false;
+      updateAdminButtonState();
+      closeAdminSettingsModal();
+      renderSchedule();
+      showToast("Admin session locked.");
+    }
+
+    function openAdminSettingsModal() {
+      populateDayDropdown();
+      renderAdminSelectionGrid();
+      document.getElementById("adminSettingsModal").classList.remove("hidden");
+      document.getElementById("adminSettingsModal").classList.add("flex");
+    }
+
+    function closeAdminSettingsModal() {
+      document.getElementById("adminSettingsModal").classList.add("hidden");
+      document.getElementById("adminSettingsModal").classList.remove("flex");
+      renderSchedule();
+    }
+
+    function populateDayDropdown() {
+      const sel = document.getElementById("slotDay");
+      sel.innerHTML = "";
+      allDaysList.forEach(d => {
+        sel.innerHTML += `<option value="${d.id}">${d.weekType}: ${d.name} (${d.dateFormatted})</option>`;
+      });
+    }
+
+    // Add Custom Slot / Multiple Parallel Slots
+    function addCustomSlotAction() {
+      const agency = document.getElementById("slotAgency").value;
+      const city = document.getElementById("slotCity").value;
+      const dayId = document.getElementById("slotDay").value;
+      const time = document.getElementById("slotTime").value;
+      const meetingType = document.getElementById("slotType").value;
+      const qty = parseInt(document.getElementById("slotQty").value, 10) || 1;
+
+      const dayObj = allDaysList.find(d => d.id === dayId);
+
+      const existingSameSlots = slotsDB.filter(s => 
+        s.agency === agency && 
+        s.city === city && 
+        s.dayId === dayId && 
+        s.time === time
+      );
+
+      let currentMaxIndex = 0;
+      existingSameSlots.forEach(s => {
+        if (s.slotIndex && s.slotIndex > currentMaxIndex) currentMaxIndex = s.slotIndex;
+      });
+      if (currentMaxIndex === 0 && existingSameSlots.length > 0) {
+        currentMaxIndex = existingSameSlots.length;
+      }
+
+      for (let i = 1; i <= qty; i++) {
+        const nextIndex = currentMaxIndex + i;
+        const newSlot = {
+          id: "slot_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5),
+          agency: agency,
+          city: city,
+          dayId: dayId,
+          dayName: dayObj.name,
+          dateFormatted: dayObj.dateFormatted,
+          weekType: dayObj.weekType,
+          year: dayObj.year,
+          month: dayObj.month,
+          date: dayObj.date,
+          time: time,
+          slotIndex: nextIndex,
+          meetingType: meetingType,
+          enabled: true, // Manually added slot starts checked
+          booked: false,
+          details: null,
+          isCustom: true
+        };
+        slotsDB.push(newSlot);
+      }
+
+      save();
+      renderAdminSelectionGrid();
+      renderSchedule();
+      showToast(`Added ${qty} slot(s) for ${time} (${agency} - ${city})!`);
+    }
+
+    // Quick-Selection Grid Renderer inside Admin Modal
+    function renderAdminSelectionGrid() {
+      const container = document.getElementById("adminSelectionGrid");
+      container.innerHTML = "";
+
+      const filterAgency = document.getElementById("adminFilterAgency")?.value || "ALL";
+      const filterCity = document.getElementById("adminFilterCity")?.value || "ALL";
+
+      allDaysList.forEach(day => {
+        let daySlots = slotsDB.filter(s => s.dayId === day.id);
+        if (filterAgency !== "ALL") daySlots = daySlots.filter(s => s.agency === filterAgency);
+        if (filterCity !== "ALL") daySlots = daySlots.filter(s => s.city === filterCity);
+
+        if (daySlots.length === 0) return;
+
+        daySlots.sort((a, b) => {
+          const timeDiff = parseTimeMinutes(a.time) - parseTimeMinutes(b.time);
+          if (timeDiff !== 0) return timeDiff;
+          return a.city.localeCompare(b.city);
+        });
+
+        let slotsMarkup = "";
+        daySlots.forEach(slot => {
+          const meta = getAgencyCityMeta(slot.agency, slot.city);
+
+          slotsMarkup += `
+            <div class="flex items-center justify-between p-2 rounded bg-slate-900 border border-slate-800">
+              <label class="flex items-center gap-2 cursor-pointer flex-1 truncate">
+                <input type="checkbox" ${slot.enabled ? 'checked' : ''} onchange="toggleSlotActive('${slot.id}', this.checked)" class="accent-emerald-500 rounded">
+                <span class="${slot.enabled ? 'text-white font-bold' : 'text-slate-500 font-medium'}">${slot.time}</span>
+                <span class="text-[9px] px-1.5 py-0.2 rounded font-semibold ${meta.classes}">${meta.label}</span>
+                <span class="text-[9px] text-slate-400 font-mono">Exp #${slot.slotIndex || 1}</span>
+                <span class="text-[9px] text-slate-500">(${slot.meetingType.includes('Drop-by') ? 'Drop-By' : 'Online'})</span>
+              </label>
+              <div class="flex items-center gap-2">
+                ${slot.booked ? '<span class="text-[9px] text-rose-400 font-bold bg-rose-950/40 px-1.5 py-0.5 rounded">Booked</span>' : (slot.enabled ? '<span class="text-[9px] text-emerald-400 font-bold bg-emerald-950/40 px-1.5 py-0.5 rounded">Available</span>' : '<span class="text-[9px] text-slate-600">Closed</span>')}
+                ${slot.isCustom ? `<button onclick="deleteCustomSlot('${slot.id}')" class="text-slate-500 hover:text-rose-400 text-xs px-1" title="Delete custom slot"><i class="fa-solid fa-trash"></i></button>` : ''}
+              </div>
+            </div>
+          `;
+        });
+
+        container.innerHTML += `
+          <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-1.5 flex-wrap gap-2">
+              <span class="font-bold text-white">${day.weekType}: ${day.name} (${day.dateFormatted})</span>
+              <div class="flex items-center gap-2">
+                <button onclick="setDaySlotsState('${day.id}', true)" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-emerald-400 px-2.5 py-1 rounded font-semibold transition">Tick All</button>
+                <button onclick="setDaySlotsState('${day.id}', false)" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-400 px-2.5 py-1 rounded font-semibold transition">Untick All</button>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">${slotsMarkup}</div>
+          </div>
+        `;
+      });
+    }
+
+    function toggleSlotActive(slotId, checked) {
+      const slot = slotsDB.find(s => s.id === slotId);
+      if (slot) {
+        slot.enabled = checked;
+        save();
+        renderSchedule();
+      }
+    }
+
+    function setDaySlotsState(dayId, isTicked) {
+      const filterAgency = document.getElementById("adminFilterAgency")?.value || "ALL";
+      const filterCity = document.getElementById("adminFilterCity")?.value || "ALL";
+
+      slotsDB.forEach(slot => {
+        if (slot.dayId === dayId) {
+          const matchAgency = (filterAgency === "ALL" || slot.agency === filterAgency);
+          const matchCity = (filterCity === "ALL" || slot.city === filterCity);
+          if (matchAgency && matchCity) {
+            slot.enabled = isTicked;
+          }
+        }
+      });
+
+      save();
+      renderAdminSelectionGrid();
+      renderSchedule();
+    }
+
+    function deleteCustomSlot(slotId) {
+      if (confirm("Delete this custom slot?")) {
+        slotsDB = slotsDB.filter(s => s.id !== slotId);
+        save();
+        renderAdminSelectionGrid();
+        renderSchedule();
+        showToast("Slot deleted.");
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      document.getElementById("toastMsg").innerText = msg;
+      toast.classList.remove("hidden");
+      toast.classList.add("flex");
+      setTimeout(() => {
+        toast.classList.add("hidden");
+        toast.classList.remove("flex");
+      }, 3500);
+    }
+
+    // Initialize Standard Pool & Render
+    initStandardSlotsPool();
+    renderSchedule();
+  </script>
+</body>
+</html>
